@@ -58,7 +58,7 @@ def processing(name):
 	api = API(API_KEY, API_SECRET)
 	#url = "http://blogs.reuters.com/great-debate/files/2013/07/obama-best.jpg"
 	
-	result = api.detection.detect(img = File(os.path.join('C:/Users/Bhawana/Desktop/Research_code/uploads/',str(name)))) #to detect   local images
+	result = api.detection.detect(img = File(os.path.join('uploads/',str(name)))) #to detect   local images
 	#result = api.detection.detect(url=url)  to detect online images
 	return print_result(result)
 	

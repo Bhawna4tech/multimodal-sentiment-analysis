@@ -8,7 +8,7 @@ from pprint import pformat
 
 app = Flask(__name__)
 
-app.config['UPLOAD_FOLDER'] = 'uploads\\'
+app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = set(['jpg','png'])
 
 

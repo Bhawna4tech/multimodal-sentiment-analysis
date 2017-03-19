@@ -74,8 +74,8 @@ def processing(name):
 			attributeExtractionToCsv(result,fields,filename)
 		else:
 			continue
-	return uploaded_file()
-	#return print_result(result)
+	#return uploaded_file()
+	return print_result(result)
 
 def attributeExtractionToCsv(result,fields,filename):
 	base_height = 48.787879

@@ -61,16 +61,24 @@ def processing(name):
 	api = API(API_KEY, API_SECRET)
 	#url = "http://blogs.reuters.com/great-debate/files/2013/07/obama-best.jpg"
 	
-	result = api.detection.detect(img = File(os.path.join('uploads/',str(name)))) #to detect   local images
+	#result = api.detection.detect(img = File(os.path.join('uploads/',str(name)))) #to detect   local images
 	#result = api.detection.detect(url=url)  to detect online images
-	return attributeExtractionToCsv(result)
-	#return print_result(result)
+	#return attributeExtractionToCsv(result)
 	
-	#return os.path.join('uploads/',name)
-	#api.group.delete(group_name = 'test')
-	#api.person.delete(person_name = [i[0] for i in PERSONS])
+	fields = ['File Name' , 'Face Id' , 'Distance b/w left eye and nose' , 'Distance b/w right eye and nose' , 'Distance b/w nose and left side of mouth' , 'Distance b/w nose and right side of mouth']
+	initializeTrainedCSV(fields)
+	
+	for filename in os.listdir('Training dataset'):
+		if filename.endswith(".jpg") or filename.endswith(".png"):
+			result = api.detection.detect(img = File(os.path.join('Training dataset', filename))) #to detect   local images
+			attributeExtractionToCsv(result,fields,filename)
+		else:
+			continue
+	return uploaded_file()
+	#return print_result(result)
 
-def attributeExtractionToCsv(result):
+def attributeExtractionToCsv(result,fields,filename):
+	base_height = 48.787879
 	face_id = result['face'][0]['face_id']
 	eye_left_x = result['face'][0]['position']['eye_left']['x']
 	eye_left_y = result['face'][0]['position']['eye_left']['y']
@@ -82,21 +90,23 @@ def attributeExtractionToCsv(result):
 	mouth_left_y = result['face'][0]['position']['mouth_left']['y']
 	mouth_right_x = result['face'][0]['position']['mouth_right']['x']
 	mouth_right_y = result['face'][0]['position']['mouth_right']['y']
-	img_height = result['img_height']
-	#result = api.detection.detect(url=url)  to detect online images
-
-	csv_details = [{
-	'Face Id' : face_id,
-	'Distance b/w left eye and nose' : math.sqrt(((eye_left_x-nose_x)*(eye_left_x-nose_x))+((eye_left_y-nose_y)*(eye_left_y-nose_y))),
-	'Distance b/w right eye and nose' : math.sqrt(((eye_right_x-nose_x)*(eye_right_x-nose_x))+((eye_right_y-nose_y)*(eye_right_y-nose_y))),
-	'Distance b/w nose and left side of mouth' : math.sqrt(((nose_x-mouth_left_x)*(nose_x-mouth_left_x))+((nose_y-mouth_left_y)*(nose_y-mouth_left_y))),
-	'Distance b/w nose and right side of mouth' : math.sqrt(((nose_x-mouth_right_x)*(nose_x-mouth_right_x))+((nose_y-mouth_right_y)*(nose_y-mouth_right_y)))
-	}]
-	fields = ['Face Id' , 'Distance b/w left eye and nose' , 'Distance b/w right eye and nose' , 'Distance b/w nose and left side of mouth' , 'Distance b/w nose and right side of mouth']
+	sample_height = result['face'][0]['position']['height']
 	
-	initializeTrainedCSV(fields)
+	dle_n = math.sqrt(((eye_left_x-nose_x)*(eye_left_x-nose_x))+((eye_left_y-nose_y)*(eye_left_y-nose_y)))
+	dre_n = math.sqrt(((eye_right_x-nose_x)*(eye_right_x-nose_x))+((eye_right_y-nose_y)*(eye_right_y-nose_y)))
+	dn_ml = math.sqrt(((nose_x-mouth_left_x)*(nose_x-mouth_left_x))+((nose_y-mouth_left_y)*(nose_y-mouth_left_y)))
+	dn_mr = math.sqrt(((nose_x-mouth_right_x)*(nose_x-mouth_right_x))+((nose_y-mouth_right_y)*(nose_y-mouth_right_y)))
+	
+	csv_details = [{
+	'File Name' : filename,
+	'Face Id' : face_id,
+	'Distance b/w left eye and nose' : dle_n *(base_height/sample_height),
+	'Distance b/w right eye and nose' : dre_n *(base_height/sample_height),
+	'Distance b/w nose and left side of mouth' : dn_ml *(base_height/sample_height),
+	'Distance b/w nose and right side of mouth' : dn_mr *(base_height/sample_height)
+	}]
+	
 	writeToCSV("trainedData.csv", fields, csv_details)
-	return uploaded_file(csv_details)
 	
 	#return render_template('csvToTable.html',result = csv_details)
 
@@ -110,11 +120,9 @@ def initializeTrainedCSV(fields):
 		writer = csv.DictWriter(csvfile,fieldnames = fields)
 		writer.writeheader()
 		
-def uploaded_file(filename):
-
+def uploaded_file():
 	reader = csv.reader(open("trainedData.csv"))
 	htmlfile = open("templates/csvpage.html","w")
-	#htmlfile=os.fdopen(os.open("templates/hello2.html", os.O_WRONLY | os.O_CREAT, 0600), '-rwx') 
 	rownum = 0
 	htmlfile.write('<table>')
 	for row in reader: 

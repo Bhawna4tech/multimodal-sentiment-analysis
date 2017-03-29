@@ -12,7 +12,7 @@ import csv
 app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['ALLOWED_EXTENSIONS'] = set(['jpg','png'])
+app.config['ALLOWED_EXTENSIONS'] = set(['jpg','png','jpeg'])
 
 
 API_KEY = '0ec41f73620f6ec21ad5c986208aa328'
@@ -69,7 +69,7 @@ def processing(name):
 	initializeTrainedCSV(fields)
 	
 	for filename in os.listdir('Training dataset'):
-		if filename.endswith(".jpg") or filename.endswith(".png"):
+		if filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
 			result = api.detection.detect(img = File(os.path.join('Training dataset', filename))) #to detect   local images
 			attributeExtractionToCsv(result,fields,filename)
 		else:

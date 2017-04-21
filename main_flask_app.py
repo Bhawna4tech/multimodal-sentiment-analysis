@@ -8,11 +8,13 @@ from pprint import pformat
 import time
 import math
 import csv
+import cv2
 
 app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['ALLOWED_EXTENSIONS'] = set(['jpg','png','jpeg'])
+app.config['ALLOWED_EXTENSIONS'] = set(['mp4','MP4'])
+app.config['FRAMES'] = 'frames'
 
 
 API_KEY = '0ec41f73620f6ec21ad5c986208aa328'
@@ -51,7 +53,7 @@ def uploading():
 		return redirect(request.url)
 	if file and allowed_file(file.filename):
 		filename = secure_filename(file.filename)
-		file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+		file.save(os.path.join("video", filename))
 		#return send_from_directory(app.config['UPLOAD_FOLDER'],filename)
 		#filename is the real file name like "bhawna.jpg"
 		return redirect(url_for('processing',name=filename))
@@ -65,12 +67,26 @@ def processing(name):
 	#result = api.detection.detect(url=url)  to detect online images
 	#return attributeExtractionToCsv(result)
 	
+	print "going to take video"
+	vidcap = cv2.VideoCapture(os.path.join("video", name))
+	print "video captured"
+	count = 0
+
+	while count<5:
+		print "image taking"
+		success,image = vidcap.read()
+		print 'Read a new frame: ', success
+		cv2.imwrite(os.path.join("Frames","frame%d.jpg" % count), image)     # save frame as JPEG file
+		count += 1
+		print "image taken"
+		#time.sleep(2000)
+		
 	fields = ['File Name' , 'Face Id' , 'Distance b/w left eye and nose' , 'Distance b/w right eye and nose' , 'Distance b/w nose and left side of mouth' , 'Distance b/w nose and right side of mouth']
-	initializeTrainedCSV(fields)
+	initializeTestCSV(fields)
 	
-	for filename in os.listdir('Training dataset'):
+	for filename in os.listdir('Frames'):
 		if filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
-			result = api.detection.detect(img = File(os.path.join('Training dataset', filename))) #to detect   local images
+			result = api.detection.detect(img = File(os.path.join('Frames', filename))) #to detect   local images
 			attributeExtractionToCsv(result,fields,filename)
 		else:
 			continue
@@ -106,7 +122,7 @@ def attributeExtractionToCsv(result,fields,filename):
 	'Distance b/w nose and right side of mouth' : dn_mr *(base_height/sample_height)
 	}]
 	
-	writeToCSV("trainedData.csv", fields, csv_details)
+	writeToCSV("testData.csv", fields, csv_details)
 	
 	#return render_template('csvToTable.html',result = csv_details)
 
@@ -115,13 +131,13 @@ def writeToCSV(fileName, fields, csv_details):
 		writer = csv.DictWriter(csvfile,fieldnames = fields)
 		writer.writerows(csv_details)
 		
-def initializeTrainedCSV(fields):
-	with open("trainedData.csv",'w') as csvfile:
+def initializeTestCSV(fields):
+	with open("testData.csv",'w') as csvfile:
 		writer = csv.DictWriter(csvfile,fieldnames = fields)
 		writer.writeheader()
 		
 def uploaded_file():
-	reader = csv.reader(open("trainedData.csv"))
+	reader = csv.reader(open("testData.csv"))
 	htmlfile = open("templates/csvpage.html","w")
 	rownum = 0
 	htmlfile.write('<table>')

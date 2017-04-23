@@ -8,7 +8,9 @@ from pprint import pformat
 import time
 import math
 import csv
+import operator
 import cv2
+from math import e, sqrt, pi
 
 app = Flask(__name__)
 
@@ -90,7 +92,8 @@ def processing(name):
 			attributeExtractionToCsv(result,fields,filename)
 		else:
 			continue
-	return uploaded_file()
+	return perplexedFinalResult()
+	#return uploaded_file()
 	#return print_result(result)
 
 def attributeExtractionToCsv(result,fields,filename):
@@ -136,6 +139,53 @@ def initializeTestCSV(fields):
 		writer = csv.DictWriter(csvfile,fieldnames = fields)
 		writer.writeheader()
 		
+def perplexedFinalResult():
+	gaussHappy = 1
+	gaussSad = 1
+	gaussNeutral = 1
+	probHappy = 0.421
+	probSad = 0.263
+	probNeutral = 0.315
+	
+	meanHappy = [18.585, 18.469, 14.126, 13.385]
+	meanSad = [17.004, 18.260,  15.849, 16.581]
+	meanNeutral = [18.777, 17.843, 15.398, 14.254]
+	
+	sdHappy = [2.455, 2.636, 5.035, 4.691]
+	sdSad = [2.102, 4.097, 3.482, 4.625]
+	sdNeutral = [4.116, 3.256, 2.985, 3.712]
+	
+	happyCount = 0
+	sadCount = 0
+	neutralCount = 0
+	
+	testReader = csv.reader(open("testData.csv"))
+	testReader.next()
+	for row in testReader :
+		for i in range(2,5):
+			gaussHappy = gaussHappy * (1/(math.sqrt(2*math.pi)*sdHappy[i-2])*math.e**(-0.5*(float(float(row[i])-meanHappy[i-2])/sdHappy[i-2])**2))
+			gaussSad = gaussSad * (1/(math.sqrt(2*math.pi)*sdSad[i-2])*math.e**(-0.5*(float(float(row[i])-meanSad[i-2])/sdSad[i-2])**2))
+			gaussNeutral = gaussNeutral * (1/(math.sqrt(2*math.pi)*sdNeutral[i-2])*math.e**(-0.5*(float(float(row[i])-meanNeutral[i-2])/sdNeutral[i-2])**2))
+		condProbHappy = math.pow(gaussHappy,0.25) * probHappy
+		condProbSad = math.pow(gaussSad,0.25) * probSad
+		condProbNeutral = math.pow(gaussNeutral,0.25) * probNeutral
+		
+		probResult = { 'Happy' : condProbHappy, 'Sad' : condProbSad, 'Neutral' : condProbNeutral}
+		#max(probResult.iteritems(), key=operator.itemgetter(1))[0]
+		key = max(probResult, key=probResult.get)
+		if key == 'Happy':
+			happyCount = happyCount + 1
+		elif key == 'Sad':
+			sadCount = sadCount + 1
+		else:
+			neutralCount = neutralCount + 1
+		
+		
+	resultDict = { 'Happy' : happyCount, 'Sad' : sadCount, 'Neutral' : neutralCount}
+	key = max(resultDict, key = resultDict.get)
+	#print key
+	return render_template('perplexedVideoResult.html',result = key)
+	
 def uploaded_file():
 	reader = csv.reader(open("testData.csv"))
 	htmlfile = open("templates/csvpage.html","w")

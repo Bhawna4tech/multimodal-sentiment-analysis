@@ -73,14 +73,11 @@
 <div class="container-fluid bg-1 text-center">
   <h3 class="margin">This app will upload image and give sentiment scores related to that image.</h3>
 <!-- Main Program -->
- <form class="col-sm-8" action="upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file"><br /><br />
-        <input type="submit" value="Upload" style="color:black;">
-		</html>
-		<h3>Upload (.mp4) file to get results.</h3>
-   </form>
+<form method="post" action="/">
+	<input type="submit" value="Upload another video" style="color:black;">
+</form>
    
-  <h2 class="col-sm-4" style="background-color:lavenderblush; color: Blue;" >The video was {{result}} </h2
+  <h2 class="col-sm-4" style="background-color:lavenderblush; color: Blue;" >The video was {{percent}} percentage {{result}} </h2
 <!-- End of Main Program -->
 </div>
 

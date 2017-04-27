@@ -41,8 +41,8 @@ def print_result(result):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
 
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
+#@app.route('/')
 def index():
     return render_template('index.html')
 
@@ -74,22 +74,24 @@ def processing(name):
 	print "video captured"
 	count = 0
 
-	while count<5:
+	while count<10:
 		print "image taking"
 		success,image = vidcap.read()
 		print 'Read a new frame: ', success
 		cv2.imwrite(os.path.join("Frames","frame%d.jpg" % count), image)     # save frame as JPEG file
 		count += 1
 		print "image taken"
-		#time.sleep(2000)
+		vidcap.set(cv2.CAP_PROP_POS_MSEC,count*600)
 		
 	fields = ['File Name' , 'Face Id' , 'Distance b/w left eye and nose' , 'Distance b/w right eye and nose' , 'Distance b/w nose and left side of mouth' , 'Distance b/w nose and right side of mouth']
 	initializeTestCSV(fields)
-	
+	count = 0 
 	for filename in os.listdir('Frames'):
 		if filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
 			result = api.detection.detect(img = File(os.path.join('Frames', filename))) #to detect   local images
+			count = count+1
 			attributeExtractionToCsv(result,fields,filename)
+			print "frame "+ str(count)
 		else:
 			continue
 	return perplexedFinalResult()
@@ -143,17 +145,19 @@ def perplexedFinalResult():
 	gaussHappy = 1
 	gaussSad = 1
 	gaussNeutral = 1
-	probHappy = 0.421
-	probSad = 0.263
-	probNeutral = 0.315
+	probHappy = 0.333
+	probSad = 0.333
+	probNeutral = 0.333
 	
-	meanHappy = [18.585, 18.469, 14.126, 13.385]
-	meanSad = [17.004, 18.260,  15.849, 16.581]
-	meanNeutral = [18.777, 17.843, 15.398, 14.254]
+	meanHappy = [15.60096197,	15.04479552,	13.14561,	14.30450974]
+	meanSad = [14.79764948,	14.76956348,	14.92604009,	15.97522181]
+	meanNeutral = [15.73483778,	15.99455832,	15.96757982,	16.0784396]
+
 	
-	sdHappy = [2.455, 2.636, 5.035, 4.691]
-	sdSad = [2.102, 4.097, 3.482, 4.625]
-	sdNeutral = [4.116, 3.256, 2.985, 3.712]
+	sdHappy = [4.39062347,	3.778884273,	3.146677271,	3.686385466]
+	sdSad = [3.814668676,	3.877983366,	2.61928689,	2.846513152]
+	sdNeutral = [3.387115798,	3.619111747,	2.470246471,	2.120212889]
+
 	
 	happyCount = 0
 	sadCount = 0
@@ -169,7 +173,7 @@ def perplexedFinalResult():
 		condProbHappy = math.pow(gaussHappy,0.25) * probHappy
 		condProbSad = math.pow(gaussSad,0.25) * probSad
 		condProbNeutral = math.pow(gaussNeutral,0.25) * probNeutral
-		
+		print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
 		probResult = { 'Happy' : condProbHappy, 'Sad' : condProbSad, 'Neutral' : condProbNeutral}
 		#max(probResult.iteritems(), key=operator.itemgetter(1))[0]
 		key = max(probResult, key=probResult.get)
@@ -181,10 +185,12 @@ def perplexedFinalResult():
 			neutralCount = neutralCount + 1
 		
 		
-	resultDict = { 'Happy' : happyCount, 'Sad' : sadCount, 'Neutral' : neutralCount}
+	resultDict = {'Sad' : sadCount, 'Neutral' : neutralCount, 'Happy' : happyCount}
 	key = max(resultDict, key = resultDict.get)
 	#print key
-	return render_template('perplexedVideoResult.html',result = key)
+	print "happyCount" + str(happyCount) + " sadCount"+ str(sadCount) + "neutralCount" + str(neutralCount)
+	percentage = (float(resultDict[key])/(float(happyCount + sadCount + neutralCount))) * 100
+	return render_template('perplexedVideoResult.html',result = key, percent = percentage)
 	
 def uploaded_file():
 	reader = csv.reader(open("testData.csv"))

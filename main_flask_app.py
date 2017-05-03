@@ -36,8 +36,6 @@ def print_result(result):
 	return '\n'.join(['  ' + i for i in pformat(result, width = 75).split('\n')])
 
 
-
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
 
@@ -62,6 +60,10 @@ def uploading():
 
 @app.route('/upload/processing/<name>')		
 def processing(name):
+	import execute
+	print " calling audio features"
+	execute.audioFeatures(name)
+	print " called audio features"
 	api = API(API_KEY, API_SECRET)
 	#url = "http://blogs.reuters.com/great-debate/files/2013/07/obama-best.jpg"
 	
@@ -74,7 +76,7 @@ def processing(name):
 	print "video captured"
 	count = 0
 
-	while count<10:
+	while count<6:
 		print "image taking"
 		success,image = vidcap.read()
 		print 'Read a new frame: ', success
@@ -140,8 +142,8 @@ def initializeTestCSV(fields):
 	with open("testData.csv",'w') as csvfile:
 		writer = csv.DictWriter(csvfile,fieldnames = fields)
 		writer.writeheader()
-		
-def perplexedFinalResult():
+
+def perplexVideoResult():
 	gaussHappy = 1
 	gaussSad = 1
 	gaussNeutral = 1
@@ -190,6 +192,10 @@ def perplexedFinalResult():
 	#print key
 	print "happyCount" + str(happyCount) + " sadCount"+ str(sadCount) + "neutralCount" + str(neutralCount)
 	percentage = (float(resultDict[key])/(float(happyCount + sadCount + neutralCount))) * 100
+	return key,percentage
+		
+def perplexedFinalResult():
+	key,percentage = perplexVideoResult()
 	return render_template('perplexedVideoResult.html',result = key, percent = percentage)
 	
 def uploaded_file():

@@ -9,8 +9,8 @@ def extractFeatures():
 
 	#print subprocess.call('cd C:\Users\Popoye\Downloads\openSMILE-2.1.0\openSMILE-2.1.0',shell=True)
 	#print subprocess.call('SMILExtract_Release -C config/emobase.conf -I rec.wav -O output.arff -classes {happy,sad,neutral} -classlabel neutral',shell=True)
-	path = 'C:\Users\Bhawana\Desktop\Research_code\openSMILE-2.1.0\\dataset-audios'
-	path2= 'C:\Users\Bhawana\Desktop\Research_code\openSMILE-2.1.0\\traindata'
+	path = 'openSMILE-2.1.0\\dataset-audios'
+	path2= 'openSMILE-2.1.0\\traindata'
 
 	for filename in os.listdir(path2):
 	#         fn= filename.partition('.')[0]

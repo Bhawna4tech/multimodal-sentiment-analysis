@@ -96,7 +96,7 @@ def processing(name):
 			print "frame "+ str(count)
 		else:
 			continue
-	return perplexedFinalResult()
+	return perplexedFinalResult(name)
 	#return uploaded_file()
 	#return print_result(result)
 
@@ -152,8 +152,8 @@ def perplexVideoResult():
 	probNeutral = 0.333
 	
 	meanHappy = [15.60096197,	15.04479552,	13.14561,	14.30450974]
-	meanSad = [14.79764948,	14.76956348,	14.92604009,	15.97522181]
-	meanNeutral = [15.73483778,	15.99455832,	15.96757982,	16.0784396]
+	meanNeutral = [14.79764948,	14.76956348,	14.92604009,	15.97522181]
+	meanSad = [15.73483778,	15.99455832,	15.96757982,	16.0784396]
 
 	
 	sdHappy = [4.39062347,	3.778884273,	3.146677271,	3.686385466]
@@ -194,9 +194,12 @@ def perplexVideoResult():
 	percentage = (float(resultDict[key])/(float(happyCount + sadCount + neutralCount))) * 100
 	return key,percentage
 		
-def perplexedFinalResult():
+def perplexedFinalResult(filename):
 	key,percentage = perplexVideoResult()
-	return render_template('perplexedVideoResult.html',result = key, percent = percentage)
+	import videoToSpeech
+	speechResult = videoToSpeech.speechKeywords(filename)
+	print "This sentence is about: %s" % ", ".join(speechResult)
+	return render_template('perplexedVideoResult.html',result = key, percent = percentage, speechWords = speechResult )
 	
 def uploaded_file():
 	reader = csv.reader(open("testData.csv"))

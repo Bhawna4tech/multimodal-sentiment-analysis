@@ -110,9 +110,10 @@ class NPExtractor(object):
 
 
 # Main method, just run "python np_extractor.py"
-def main():
+def speechKeywords(filename):
 	r = sr.Recognizer()
-	with sr.AudioFile('english.wav') as source:
+	filename = filename.partition(".")[0] + '.wav'
+	with sr.AudioFile('openSMILE-2.1.0/dataset-audios/' + filename) as source:
 		audio = r.record(source)  # read the entire audio file
 
 # recognize speech using Sphinx
@@ -128,7 +129,5 @@ def main():
 	sentence = clean_document(sentence)
 	np_extractor = NPExtractor(sentence)
 	result = np_extractor.extract()
-	print "This sentence is about: %s" % ", ".join(result)
-
-if __name__ == '__main__':
-    main()
+	#print "This sentence is about: %s" % ", ".join(result)
+	return result

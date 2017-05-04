@@ -159,23 +159,23 @@ def perplexVideoResult():
 	sdHappy = [4.39062347,	3.778884273,	3.146677271,	3.686385466]
 	sdSad = [3.814668676,	3.877983366,	2.61928689,	2.846513152]
 	sdNeutral = [3.387115798,	3.619111747,	2.470246471,	2.120212889]
-
 	
-	happyCount = 0
-	sadCount = 0
-	neutralCount = 0
+	condProbHappy = 0
+	condProbNeutral = 0
+	condProbSad = 0
 	
 	testReader = csv.reader(open("testData.csv"))
 	testReader.next()
 	for row in testReader :
+		print "reading row in video"
 		for i in range(2,5):
 			gaussHappy = gaussHappy * (1/(math.sqrt(2*math.pi)*sdHappy[i-2])*math.e**(-0.5*(float(float(row[i])-meanHappy[i-2])/sdHappy[i-2])**2))
 			gaussSad = gaussSad * (1/(math.sqrt(2*math.pi)*sdSad[i-2])*math.e**(-0.5*(float(float(row[i])-meanSad[i-2])/sdSad[i-2])**2))
 			gaussNeutral = gaussNeutral * (1/(math.sqrt(2*math.pi)*sdNeutral[i-2])*math.e**(-0.5*(float(float(row[i])-meanNeutral[i-2])/sdNeutral[i-2])**2))
-		condProbHappy = math.pow(gaussHappy,0.25) * probHappy
-		condProbSad = math.pow(gaussSad,0.25) * probSad
-		condProbNeutral = math.pow(gaussNeutral,0.25) * probNeutral
-		print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
+		condProbHappy = condProbHappy + (math.pow(gaussHappy,0.25) * probHappy)
+		condProbSad = condProbSad + (math.pow(gaussSad,0.25) * probSad)
+		condProbNeutral = condProbNeutral + (math.pow(gaussNeutral,0.25) * probNeutral)
+		'''print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
 		probResult = { 'Happy' : condProbHappy, 'Sad' : condProbSad, 'Neutral' : condProbNeutral}
 		#max(probResult.iteritems(), key=operator.itemgetter(1))[0]
 		key = max(probResult, key=probResult.get)
@@ -185,21 +185,72 @@ def perplexVideoResult():
 			sadCount = sadCount + 1
 		else:
 			neutralCount = neutralCount + 1
-		
-		
-	resultDict = {'Sad' : sadCount, 'Neutral' : neutralCount, 'Happy' : happyCount}
-	key = max(resultDict, key = resultDict.get)
-	#print key
-	print "happyCount" + str(happyCount) + " sadCount"+ str(sadCount) + "neutralCount" + str(neutralCount)
-	percentage = (float(resultDict[key])/(float(happyCount + sadCount + neutralCount))) * 100
-	return key,percentage
-		
+		'''
+		print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
+	
+	videoProbResult = {'Sad' : condProbSad/6.0, 'Neutral' : condProbNeutral/6.0, 'Happy' : condProbHappy/6.0}
+	return videoProbResult
+
+def perplexAudioResult():
+	gaussHappy = 1
+	gaussSad = 1
+	gaussNeutral = 1
+	probHappy = 0.292
+	probNeutral = 0.365
+	probSad = 0.341
+	
+	meanHappy = [2.88E-07,	3.573755417,	0.787316192,	4.073463642,	13.36207,	20.43589908,	14.75025992,	15.96143,	-0.0133684,	15.96857333,	12.07059583,	-0.003823147,	11.56947458]
+	meanNeutral = [7.33E-08,	1.5429904,	0.241308887,	10.10892847,	12.539236,	25.99002533,	13.12771067,	16.36112133,	-0.022255473,	11.43994127,	11.39850267,	5.89E-05,	10.54575333]
+	meanSad = [9.64E-08,	1.899727143,	0.312704271,	8.184757643,	9.904235357,	19.92109457,	12.29401343,	16.30708929,	-0.005969635,	11.28024071,	11.77704864,	5.435395588,	10.873942]
+
+	
+	sdHappy = [2.94E-07,	0.653578387,	0.0933351,	2.420906381,	1.560993177,	6.9727587,	3.072487996,	1.824056852,	0.018255835,	2.999451547,	1.334869011,	0.014188305,	1.957006268]
+	sdSad = [1.19E-07,	0.402199396,	0.068494799,	1.020715776,	2.224417006,	6.888240872,	1.544066642,	2.315990374,	0.011938437,	1.614596964,	1.593302574,	0.014065295,	1.330196214]
+	sdNeutral = [8.58E-08,	0.138223376,	0.02936114,	2.834655167,	1.355208776,	4.525597389,	1.593495516,	1.946874541,	0.02896053,	1.371589621,	1.461399469,	0.020201752,	1.322401606]
+	
+	condProbHappy = 0
+	condProbNeutral = 0
+	condProbSad = 0
+	
+	testReader = csv.reader(open("openSMILE-2.1.0/attributes.csv"))
+	
+	for row in testReader :
+		print "reading row in audio"
+		for i in range(0,12):
+			gaussHappy = gaussHappy * (1/(math.sqrt(2*math.pi)*sdHappy[i])*math.e**(-0.5*(float(float(row[i])-meanHappy[i])/sdHappy[i])**2))
+			gaussSad = gaussSad * (1/(math.sqrt(2*math.pi)*sdSad[i])*math.e**(-0.5*(float(float(row[i])-meanSad[i])/sdSad[i])**2))
+			gaussNeutral = gaussNeutral * (1/(math.sqrt(2*math.pi)*sdNeutral[i])*math.e**(-0.5*(float(float(row[i])-meanNeutral[i])/sdNeutral[i])**2))
+		condProbHappy = math.pow(gaussHappy,(1/13)) * probHappy
+		condProbSad = math.pow(gaussSad,(1/13)) * probSad
+		condProbNeutral = math.pow(gaussNeutral,(1/13)) * probNeutral
+		'''print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
+		probResult = { 'Happy' : condProbHappy, 'Sad' : condProbSad, 'Neutral' : condProbNeutral}
+		#max(probResult.iteritems(), key=operator.itemgetter(1))[0]
+		key = max(probResult, key=probResult.get)
+		if key == 'Happy':
+			happyCount = happyCount + 1
+		elif key == 'Sad':
+			sadCount = sadCount + 1
+		else:
+			neutralCount = neutralCount + 1
+		'''
+	
+	audioProbResult = {'Sad' : condProbSad, 'Neutral' : condProbNeutral, 'Happy' : condProbHappy}
+	return audioProbResult
+	
 def perplexedFinalResult(filename):
-	key,percentage = perplexVideoResult()
+	videoProbResult = perplexVideoResult()
+	keyV = max(videoProbResult, key = videoProbResult.get)
+	percentageV = (float(videoProbResult[keyV]))*100
+	
+	audioProbResult = perplexAudioResult()
+	keyA = max(audioProbResult, key = audioProbResult.get)
+	percentageA = (float(audioProbResult[keyA]))*100
+	
 	import videoToSpeech
 	speechResult = videoToSpeech.speechKeywords(filename)
 	print "This sentence is about: %s" % ", ".join(speechResult)
-	return render_template('perplexedVideoResult.html',result = key, percent = percentage, speechWords = speechResult )
+	return render_template('perplexedVideoResult.html',keyV = keyV, percentV = percentageV, speechWords = speechResult, keyA = keyA, percentA = percentageA )
 	
 def uploaded_file():
 	reader = csv.reader(open("testData.csv"))

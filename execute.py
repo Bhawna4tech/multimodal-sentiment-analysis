@@ -9,7 +9,8 @@ def audioFeatures(filename):
 	arffread.videoToAudio(filename)
 	convert.convertSox()
 	time.sleep(3)
-	first.extractFeatures()
+	first.extractFeatures(filename)
+	time.sleep(3)
 	#time.sleep(5000)
 	attributes.featuresToCsv()
 

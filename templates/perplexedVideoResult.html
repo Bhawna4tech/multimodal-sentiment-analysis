@@ -77,13 +77,17 @@
 	<input type="submit" value="Upload another video" style="color:black;">
 </form>
    <div class="row">
+   <h3 class="col-sm-4" style="background-color:lavenderblush; color: Blue;" >The video was {{percentV}} percentage {{keyV}} </h3>
 	 <div class="col-sm-4"></div>
-  <h2 class="col-sm-4" style="background-color:lavenderblush; color: Blue;" >The video was {{percentV}} percentage {{keyV}} </h2>
-  <h2 class="col-sm-4" style="background-color:lavenderblush; color: Blue;" >The audio was {{percentA}} percentage {{keyA}} </h2>
+  <h3 class="col-sm-4" style="background-color:lavenderblush; color: Blue;" >The audio was {{percentA}} percentage {{keyA}} </h3>
  </div>
  <div class="row">
 	 <div class="col-sm-4"></div>
   <h3 class="col-sm-4" style="color: Black;" >Keywords used in the video were {{speechWords}}</h3>
+  </div>
+  <div class="row">
+	 <div class="col-sm-4"></div>
+  <h2 class="col-sm-4" style="background-color:lavenderblush; color: Blue;" >Overall Result using both audio and video features: {{percentFinal}}% {{keyMax}}</h2>
   </div>
 <!-- End of Main Program -->
 </div>

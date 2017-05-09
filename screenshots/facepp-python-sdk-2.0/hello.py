@@ -36,29 +36,6 @@ api = API(API_KEY, API_SECRET)
 
 # Here are the person names and their face images
 # 人名及其脸部图片
-PERSONS = [
-    ('Brad Pitt', 'http://www.faceplusplus.com/static/img/demo/9.jpg'),
-    ('Nicolas Cage', 'http://www.faceplusplus.com/static/img/demo/7.jpg'),
-    ('Jackie Chan', 'http://www.faceplusplus.com/static/img/demo/6.jpg')
-]
-TARGET_IMAGE = 'http://www.faceplusplus.com/static/img/demo/13.jpg'
-
-# Step 1: Create a group to add these persons in
-# 步骤1： 新建一个group用以添加person
-api.group.create(group_name = 'test')
-
-# Step 2: Detect faces from those three images and add them to the persons
-# 步骤2：从三种图片中检测人脸并将其加入person中。 
-for (name, url) in PERSONS:
-    result = api.detection.detect(url = url, mode = 'oneface')
-    print_result('Detection result for {}:'.format(name), result)
-
-    face_id = result['face'][0]['face_id'] 
-
-    # Create a person in the group, and add the face to the person
-    # 在该group中新建一个person，并将face加入期中
-    api.person.create(person_name = name, group_name = 'test',
-            face_id = face_id)
 
 
 # Step 3: Train the group.
@@ -71,10 +48,6 @@ result = api.recognition.train(group_name = 'test', type = 'all')
 # Because the train process is time-consuming, the operation is done
 # asynchronously, so only a session ID would be returned.
 # 由于训练过程比较耗时，所以操作必须异步完成，因此只有session ID会被返回
-print_result('Train result:', result)
-
-session_id = result['session_id']
-
 # Now, wait before train completes
 # 等待训练完成
 while True:
@@ -89,7 +62,8 @@ while True:
 
 # Step 4: recognize the unknown face image
 # 步骤4：识别未知脸部图片
-result = api.recognition.recognize(url = TARGET_IMAGE, group_name = 'test')
+result = api.detection.detect(img = File(os.path.join('uploads/bhaw.jpg'))) #to detect   local images
+
 print_result('Recognize result:', result)
 print ('=' * 60)
 print ('The person with highest confidence:', \

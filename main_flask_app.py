@@ -76,16 +76,16 @@ def processing(name):
 	print "video captured"
 	count = 0
 
-	while count<6:
+	while count<15:
 		print "image taking"
 		success,image = vidcap.read()
 		print 'Read a new frame: ', success
 		cv2.imwrite(os.path.join("Frames","frame%d.jpg" % count), image)     # save frame as JPEG file
 		count += 1
 		print "image taken"
-		vidcap.set(cv2.CAP_PROP_POS_MSEC,count*600)
+		vidcap.set(cv2.CAP_PROP_POS_MSEC,count*1000)
 		
-	fields = ['File Name' , 'Face Id' , 'Distance b/w left eye and nose' , 'Distance b/w right eye and nose' , 'Distance b/w nose and left side of mouth' , 'Distance b/w nose and right side of mouth']
+	fields = ['File Name' , 'Face Id' , 'Distance b/w left eye and nose' , 'Distance b/w right eye and nose' , 'Distance b/w nose and left side of mouth' , 'Distance b/w nose and right side of mouth' , 'Smile Factor']
 	initializeTestCSV(fields)
 	count = 0 
 	for filename in os.listdir('Frames'):
@@ -102,6 +102,7 @@ def processing(name):
 
 def attributeExtractionToCsv(result,fields,filename):
 	base_height = 48.787879
+	smile_factor = result['face'][0]['attribute']['smiling']['value']
 	face_id = result['face'][0]['face_id']
 	eye_left_x = result['face'][0]['position']['eye_left']['x']
 	eye_left_y = result['face'][0]['position']['eye_left']['y']
@@ -126,7 +127,8 @@ def attributeExtractionToCsv(result,fields,filename):
 	'Distance b/w left eye and nose' : dle_n *(base_height/sample_height),
 	'Distance b/w right eye and nose' : dre_n *(base_height/sample_height),
 	'Distance b/w nose and left side of mouth' : dn_ml *(base_height/sample_height),
-	'Distance b/w nose and right side of mouth' : dn_mr *(base_height/sample_height)
+	'Distance b/w nose and right side of mouth' : dn_mr *(base_height/sample_height),
+	'Smile Factor' : smile_factor
 	}]
 	
 	writeToCSV("testData.csv", fields, csv_details)
@@ -144,39 +146,39 @@ def initializeTestCSV(fields):
 		writer.writeheader()
 
 def perplexVideoResult():
-	gaussHappy = 1
-	gaussSad = 1
-	gaussNeutral = 1
+	gaussHappy = 1.0
+	gaussSad = 1.0
+	gaussNeutral = 1.0
 	probHappy = 0.333
 	probSad = 0.333
 	probNeutral = 0.333
 	
-	meanHappy = [15.60096197,	15.04479552,	13.14561,	14.30450974]
-	meanNeutral = [14.79764948,	14.76956348,	14.92604009,	15.97522181]
-	meanSad = [15.73483778,	15.99455832,	15.96757982,	16.0784396]
+	meanHappy = [15.60096197,	15.04479552,	13.14561,	14.30450974, 74.83850291]
+	meanSad = [14.79764948,	14.76956348,	14.92604009,	15.97522181, 4.939373745]
+	meanNeutral = [15.73483778,	15.99455832,	15.96757982,	16.0784396, 5.321129564]
 
 	
-	sdHappy = [4.39062347,	3.778884273,	3.146677271,	3.686385466]
-	sdSad = [3.814668676,	3.877983366,	2.61928689,	2.846513152]
-	sdNeutral = [3.387115798,	3.619111747,	2.470246471,	2.120212889]
+	sdHappy = [4.39062347,	3.778884273,	3.146677271,	3.686385466, 28.34451374]
+	sdSad = [3.814668676,	3.877983366,	2.61928689,	2.846513152, 10.45499379]
+	sdNeutral = [3.387115798,	3.619111747,	2.470246471,	2.120212889, 6.773624443]
 	
-	condProbHappy = 0
-	condProbNeutral = 0
-	condProbSad = 0
+	happyCount = 0
+	sadCount = 0
+	neutralCount = 0
 	
 	testReader = csv.reader(open("testData.csv"))
 	testReader.next()
 	for row in testReader :
 		print "reading row in video"
-		for i in range(2,5):
+		for i in range(2,7):
 			gaussHappy = gaussHappy * (1/(math.sqrt(2*math.pi)*sdHappy[i-2])*math.e**(-0.5*(float(float(row[i])-meanHappy[i-2])/sdHappy[i-2])**2))
 			gaussSad = gaussSad * (1/(math.sqrt(2*math.pi)*sdSad[i-2])*math.e**(-0.5*(float(float(row[i])-meanSad[i-2])/sdSad[i-2])**2))
 			gaussNeutral = gaussNeutral * (1/(math.sqrt(2*math.pi)*sdNeutral[i-2])*math.e**(-0.5*(float(float(row[i])-meanNeutral[i-2])/sdNeutral[i-2])**2))
-		condProbHappy = condProbHappy + (math.pow(gaussHappy,0.25) * probHappy)
-		condProbSad = condProbSad + (math.pow(gaussSad,0.25) * probSad)
-		condProbNeutral = condProbNeutral + (math.pow(gaussNeutral,0.25) * probNeutral)
-		'''print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
-		probResult = { 'Happy' : condProbHappy, 'Sad' : condProbSad, 'Neutral' : condProbNeutral}
+		condProbHappy = (math.pow(gaussHappy,0.20) * probHappy)
+		condProbSad = (math.pow(gaussSad,0.20) * probSad)
+		condProbNeutral = (math.pow(gaussNeutral,0.20) * probNeutral)
+		#print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
+		probResult = { 'Sad' : condProbSad, 'Neutral' : condProbNeutral, 'Happy' : condProbHappy}
 		#max(probResult.iteritems(), key=operator.itemgetter(1))[0]
 		key = max(probResult, key=probResult.get)
 		if key == 'Happy':
@@ -185,16 +187,16 @@ def perplexVideoResult():
 			sadCount = sadCount + 1
 		else:
 			neutralCount = neutralCount + 1
-		'''
+		
 		print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
 	
-	videoProbResult = {'Sad' : condProbSad/6.0, 'Neutral' : condProbNeutral/6.0, 'Happy' : condProbHappy/6.0}
+	videoProbResult = {'Sad' : sadCount/6.0, 'Neutral' : neutralCount/6.0, 'Happy' : happyCount/6.0}
 	return videoProbResult
 
 def perplexAudioResult():
-	gaussHappy = 1
-	gaussSad = 1
-	gaussNeutral = 1
+	gaussHappy = 1.0
+	gaussSad = 1.0
+	gaussNeutral = 1.0
 	probHappy = 0.292
 	probNeutral = 0.365
 	probSad = 0.341
@@ -212,19 +214,24 @@ def perplexAudioResult():
 	condProbNeutral = 0
 	condProbSad = 0
 	
-	testReader = csv.reader(open("openSMILE-2.1.0/attributes.csv"))
+	testReader = csv.reader(open("openSMILE-2.1.0/attributes.csv","r"))
 	
 	for row in testReader :
 		print "reading row in audio"
-		for i in range(0,12):
+		for i in range(0,13):
+			print row[i]
+			print i
 			gaussHappy = gaussHappy * (1/(math.sqrt(2*math.pi)*sdHappy[i])*math.e**(-0.5*(float(float(row[i])-meanHappy[i])/sdHappy[i])**2))
 			gaussSad = gaussSad * (1/(math.sqrt(2*math.pi)*sdSad[i])*math.e**(-0.5*(float(float(row[i])-meanSad[i])/sdSad[i])**2))
 			gaussNeutral = gaussNeutral * (1/(math.sqrt(2*math.pi)*sdNeutral[i])*math.e**(-0.5*(float(float(row[i])-meanNeutral[i])/sdNeutral[i])**2))
-		condProbHappy = math.pow(gaussHappy,(1/13)) * probHappy
-		condProbSad = math.pow(gaussSad,(1/13)) * probSad
-		condProbNeutral = math.pow(gaussNeutral,(1/13)) * probNeutral
-		'''print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
-		probResult = { 'Happy' : condProbHappy, 'Sad' : condProbSad, 'Neutral' : condProbNeutral}
+			print gaussHappy 
+			print gaussNeutral
+			print gaussSad
+		condProbHappy = math.pow(gaussHappy,(1.0/13.0)) * probHappy
+		condProbSad = math.pow(gaussSad,(1.0/13.0)) * probSad
+		condProbNeutral = math.pow(gaussNeutral,(1.0/13.0)) * probNeutral
+		print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
+		'''probResult = { 'Happy' : condProbHappy, 'Sad' : condProbSad, 'Neutral' : condProbNeutral}
 		#max(probResult.iteritems(), key=operator.itemgetter(1))[0]
 		key = max(probResult, key=probResult.get)
 		if key == 'Happy':
@@ -234,8 +241,8 @@ def perplexAudioResult():
 		else:
 			neutralCount = neutralCount + 1
 		'''
-	
-	audioProbResult = {'Sad' : condProbSad, 'Neutral' : condProbNeutral, 'Happy' : condProbHappy}
+	totalProb = condProbHappy + condProbNeutral + condProbSad
+	audioProbResult = {'Sad' : condProbSad/totalProb, 'Neutral' : condProbNeutral/totalProb, 'Happy' : condProbHappy/totalProb}
 	return audioProbResult
 	
 def perplexedFinalResult(filename):
@@ -250,7 +257,11 @@ def perplexedFinalResult(filename):
 	import videoToSpeech
 	speechResult = videoToSpeech.speechKeywords(filename)
 	print "This sentence is about: %s" % ", ".join(speechResult)
-	return render_template('perplexedVideoResult.html',keyV = keyV, percentV = percentageV, speechWords = speechResult, keyA = keyA, percentA = percentageA )
+	
+	finalProbResult = {'happy': videoProbResult['Happy']*0.5 + audioProbResult['Happy']*0.5 , 'sad': videoProbResult['Sad']*0.5 + audioProbResult['Sad']*0.5 , 'neutral': videoProbResult['Neutral']*0.5 + audioProbResult['Neutral']*0.5}
+	keyMaxFinal = max(finalProbResult, key = finalProbResult.get)
+	percentageFinal = (float(finalProbResult[keyMaxFinal]))*100
+	return render_template('perplexedVideoResult.html',keyV = keyV, percentV = percentageV, speechWords = speechResult, keyA = keyA, percentA = percentageA , percentFinal = percentageFinal, keyMax = keyMaxFinal)
 	
 def uploaded_file():
 	reader = csv.reader(open("testData.csv"))

@@ -174,9 +174,9 @@ def perplexVideoResult():
 			gaussHappy = gaussHappy * (1/(math.sqrt(2*math.pi)*sdHappy[i-2])*math.e**(-0.5*(float(float(row[i])-meanHappy[i-2])/sdHappy[i-2])**2))
 			gaussSad = gaussSad * (1/(math.sqrt(2*math.pi)*sdSad[i-2])*math.e**(-0.5*(float(float(row[i])-meanSad[i-2])/sdSad[i-2])**2))
 			gaussNeutral = gaussNeutral * (1/(math.sqrt(2*math.pi)*sdNeutral[i-2])*math.e**(-0.5*(float(float(row[i])-meanNeutral[i-2])/sdNeutral[i-2])**2))
-		condProbHappy = (math.pow(gaussHappy,0.20) * probHappy)
-		condProbSad = (math.pow(gaussSad,0.20) * probSad)
-		condProbNeutral = (math.pow(gaussNeutral,0.20) * probNeutral)
+		condProbHappy = gaussHappy * probHappy
+		condProbSad = gaussSad * probSad
+		condProbNeutral = gaussNeutral * probNeutral
 		#print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
 		probResult = { 'Sad' : condProbSad, 'Neutral' : condProbNeutral, 'Happy' : condProbHappy}
 		#max(probResult.iteritems(), key=operator.itemgetter(1))[0]
@@ -190,7 +190,7 @@ def perplexVideoResult():
 		
 		print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
 	
-	videoProbResult = {'Sad' : sadCount/6.0, 'Neutral' : neutralCount/6.0, 'Happy' : happyCount/6.0}
+	videoProbResult = {'Sad' : sadCount/15.0, 'Neutral' : neutralCount/15.0, 'Happy' : happyCount/15.0}
 	return videoProbResult
 
 def perplexAudioResult():
@@ -227,9 +227,9 @@ def perplexAudioResult():
 			print gaussHappy 
 			print gaussNeutral
 			print gaussSad
-		condProbHappy = math.pow(gaussHappy,(1.0/13.0)) * probHappy
-		condProbSad = math.pow(gaussSad,(1.0/13.0)) * probSad
-		condProbNeutral = math.pow(gaussNeutral,(1.0/13.0)) * probNeutral
+		condProbHappy =gaussHappy * probHappy
+		condProbSad = gaussSad * probSad
+		condProbNeutral = gaussNeutral * probNeutral
 		print "probabilities happy sad and neutral"+ str(condProbHappy)+" "+ str(condProbSad)+ " "+str(condProbNeutral)
 		'''probResult = { 'Happy' : condProbHappy, 'Sad' : condProbSad, 'Neutral' : condProbNeutral}
 		#max(probResult.iteritems(), key=operator.itemgetter(1))[0]
